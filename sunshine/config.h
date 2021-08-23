@@ -80,6 +80,7 @@ struct input_t {
   std::chrono::duration<double> key_repeat_period;
 
   std::string gamepad;
+  std::string gamepad_device_name;
 };
 
 namespace flag {

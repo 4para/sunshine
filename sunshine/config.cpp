@@ -699,6 +699,8 @@ void apply_config(std::unordered_map<std::string, std::string> &&vars) {
 
   map_int_int_f(vars, "keybindings"s, input.keybindings);
 
+  string_f(vars, "gamepad_device_name", input.gamepad_device_name);
+
   // This config option will only be used by the UI
   // When editing in the config file itself, use "keybindings"
   bool map_rightalt_to_win = false;

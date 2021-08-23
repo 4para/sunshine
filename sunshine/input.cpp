@@ -608,22 +608,33 @@ void passthrough_helper(std::shared_ptr<input_t> input, std::vector<std::uint8_t
   int input_type = util::endian::big(*(int *)payload);
 
   switch(input_type) {
-  case PACKET_TYPE_REL_MOUSE_MOVE:
-    passthrough(input, (PNV_REL_MOUSE_MOVE_PACKET)payload);
-    break;
-  case PACKET_TYPE_ABS_MOUSE_MOVE:
-    passthrough(input, (PNV_ABS_MOUSE_MOVE_PACKET)payload);
-    break;
-  case PACKET_TYPE_MOUSE_BUTTON:
-    passthrough(input, (PNV_MOUSE_BUTTON_PACKET)payload);
-    break;
-  case PACKET_TYPE_SCROLL_OR_KEYBOARD: {
-    char *tmp_input = (char *)payload + 4;
-    if(tmp_input[0] == 0x0A) {
-      passthrough((PNV_SCROLL_PACKET)payload);
+  case PACKET_TYPE_REL_MOUSE_MOVE: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_REL_MOUSE_MOVE_PACKET)payload);
     }
-    else {
-      passthrough(input, (PNV_KEYBOARD_PACKET)payload);
+    break;
+  }
+  case PACKET_TYPE_ABS_MOUSE_MOVE: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_ABS_MOUSE_MOVE_PACKET)payload);
+    }
+    break;
+  }
+  case PACKET_TYPE_MOUSE_BUTTON: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_MOUSE_BUTTON_PACKET)payload);
+    }
+    break;
+  }
+  case PACKET_TYPE_SCROLL_OR_KEYBOARD: {
+    if (config::input.enable_keyboard_passthrough) {
+      char *tmp_input = (char *)payload + 4;
+      if(tmp_input[0] == 0x0A) {
+        passthrough((PNV_SCROLL_PACKET)payload);
+      }
+      else {
+        passthrough(input, (PNV_KEYBOARD_PACKET)payload);
+      }
     }
 
     break;

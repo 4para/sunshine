@@ -81,6 +81,8 @@ struct input_t {
 
   std::string gamepad;
   std::string gamepad_device_name;
+  bool enable_mouse_passthrough = true;
+  bool enable_keyboard_passthrough = true;
 };
 
 namespace flag {

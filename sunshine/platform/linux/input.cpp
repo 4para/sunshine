@@ -12,6 +12,7 @@
 #include "sunshine/main.h"
 #include "sunshine/platform/common.h"
 #include "sunshine/utility.h"
+#include "sunshine/config.h"
 
 #include "sunshine/platform/common.h"
 
@@ -1191,7 +1192,11 @@ evdev_t x360() {
   libevdev_set_id_vendor(dev.get(), 0x45E);
   libevdev_set_id_bustype(dev.get(), 0x3);
   libevdev_set_id_version(dev.get(), 0x110);
-  libevdev_set_name(dev.get(), "Microsoft X-Box 360 pad");
+  std::string device_name = config::input.gamepad_device_name;
+  if (device_name.size() == 0) {
+    device_name = "Microsoft X-Box 360 pad";
+  }
+  libevdev_set_name(dev.get(), device_name.c_str());
 
   libevdev_enable_event_type(dev.get(), EV_KEY);
   libevdev_enable_event_code(dev.get(), EV_KEY, BTN_WEST, nullptr);
@@ -1244,6 +1249,11 @@ input_t input() {
 
   // If we do not have a keyboard, gamepad or mouse, no input is possible and we should abort
   if(gp.create_mouse() || gp.create_touchscreen() || gp.create_keyboard()) {
+    log_flush();
+    std::abort();
+  }
+
+  if (gp.alloc_gamepad(0, nullptr)) {
     log_flush();
     std::abort();
   }

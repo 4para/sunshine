@@ -73,11 +73,11 @@ void free_gamepad(platf::input_t &platf_input, int id) {
 struct gamepad_t {
   gamepad_t() : gamepad_state {}, back_timeout_id {}, id { -1 }, back_button_state { button_state_e::NONE } {}
   ~gamepad_t() {
-    if(id >= 0) {
-      task_pool.push([id = this->id]() {
-        free_gamepad(platf_input, id);
-      });
-    }
+    // if(id >= 0) {
+    //   task_pool.push([id = this->id]() {
+    //     free_gamepad(platf_input, id);
+    //   });
+    // }
   }
 
   platf::gamepad_state_t gamepad_state;
@@ -461,42 +461,45 @@ void passthrough(PNV_SCROLL_PACKET packet) {
 }
 
 int updateGamepads(std::vector<gamepad_t> &gamepads, std::int16_t old_state, std::int16_t new_state, platf::rumble_queue_t rumble_queue) {
-  auto xorGamepadMask = old_state ^ new_state;
-  if(!xorGamepadMask) {
-    return 0;
+  if (gamepads[0].id == -1) {
+    gamepads[0].id = 0;
   }
+  // auto xorGamepadMask = old_state ^ new_state;
+  // if(!xorGamepadMask) {
+  //   return 0;
+  // }
 
-  for(int x = 0; x < sizeof(std::int16_t) * 8; ++x) {
-    if((xorGamepadMask >> x) & 1) {
-      auto &gamepad = gamepads[x];
+  // for(int x = 0; x < sizeof(std::int16_t) * 8; ++x) {
+  //   if((xorGamepadMask >> x) & 1) {
+  //     auto &gamepad = gamepads[x];
 
-      if((old_state >> x) & 1) {
-        if(gamepad.id < 0) {
-          return -1;
-        }
+  //     if((old_state >> x) & 1) {
+  //       if(gamepad.id < 0) {
+  //         return -1;
+  //       }
 
-        free_gamepad(platf_input, gamepad.id);
-        gamepad.id = -1;
-      }
-      else {
-        auto id = alloc_id(gamepadMask);
+  //       free_gamepad(platf_input, gamepad.id);
+  //       gamepad.id = -1;
+  //     }
+  //     else {
+  //       auto id = alloc_id(gamepadMask);
 
-        if(id < 0) {
-          // Out of gamepads
-          return -1;
-        }
+  //       if(id < 0) {
+  //         // Out of gamepads
+  //         return -1;
+  //       }
 
-        if(platf::alloc_gamepad(platf_input, id, std::move(rumble_queue))) {
-          free_id(gamepadMask, id);
-          // allocating a gamepad failed: solution: ignore gamepads
-          // The implementations of platf::alloc_gamepad already has logging
-          return -1;
-        }
+  //       if(platf::alloc_gamepad(platf_input, id, std::move(rumble_queue))) {
+  //         free_id(gamepadMask, id);
+  //         // allocating a gamepad failed: solution: ignore gamepads
+  //         // The implementations of platf::alloc_gamepad already has logging
+  //         return -1;
+  //       }
 
-        gamepad.id = id;
-      }
-    }
-  }
+  //       gamepad.id = id;
+  //     }
+  //   }
+  // }
 
   return 0;
 }
@@ -605,22 +608,33 @@ void passthrough_helper(std::shared_ptr<input_t> input, std::vector<std::uint8_t
   int input_type = util::endian::big(*(int *)payload);
 
   switch(input_type) {
-  case PACKET_TYPE_REL_MOUSE_MOVE:
-    passthrough(input, (PNV_REL_MOUSE_MOVE_PACKET)payload);
-    break;
-  case PACKET_TYPE_ABS_MOUSE_MOVE:
-    passthrough(input, (PNV_ABS_MOUSE_MOVE_PACKET)payload);
-    break;
-  case PACKET_TYPE_MOUSE_BUTTON:
-    passthrough(input, (PNV_MOUSE_BUTTON_PACKET)payload);
-    break;
-  case PACKET_TYPE_SCROLL_OR_KEYBOARD: {
-    char *tmp_input = (char *)payload + 4;
-    if(tmp_input[0] == 0x0A) {
-      passthrough((PNV_SCROLL_PACKET)payload);
+  case PACKET_TYPE_REL_MOUSE_MOVE: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_REL_MOUSE_MOVE_PACKET)payload);
     }
-    else {
-      passthrough(input, (PNV_KEYBOARD_PACKET)payload);
+    break;
+  }
+  case PACKET_TYPE_ABS_MOUSE_MOVE: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_ABS_MOUSE_MOVE_PACKET)payload);
+    }
+    break;
+  }
+  case PACKET_TYPE_MOUSE_BUTTON: {
+    if (config::input.enable_mouse_passthrough) {
+      passthrough(input, (PNV_MOUSE_BUTTON_PACKET)payload);
+    }
+    break;
+  }
+  case PACKET_TYPE_SCROLL_OR_KEYBOARD: {
+    if (config::input.enable_keyboard_passthrough) {
+      char *tmp_input = (char *)payload + 4;
+      if(tmp_input[0] == 0x0A) {
+        passthrough((PNV_SCROLL_PACKET)payload);
+      }
+      else {
+        passthrough(input, (PNV_KEYBOARD_PACKET)payload);
+      }
     }
 
     break;

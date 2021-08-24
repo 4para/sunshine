@@ -80,6 +80,9 @@ struct input_t {
   std::chrono::duration<double> key_repeat_period;
 
   std::string gamepad;
+  std::string gamepad_device_name;
+  bool enable_mouse_passthrough = true;
+  bool enable_keyboard_passthrough = true;
 };
 
 namespace flag {

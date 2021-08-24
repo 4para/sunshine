@@ -699,6 +699,10 @@ void apply_config(std::unordered_map<std::string, std::string> &&vars) {
 
   map_int_int_f(vars, "keybindings"s, input.keybindings);
 
+  string_f(vars, "gamepad_device_name", input.gamepad_device_name);
+  bool_f(vars, "enable_mouse_passthrough", input.enable_mouse_passthrough);
+  bool_f(vars, "enable_keyboard_passthrough", input.enable_keyboard_passthrough);
+
   // This config option will only be used by the UI
   // When editing in the config file itself, use "keybindings"
   bool map_rightalt_to_win = false;

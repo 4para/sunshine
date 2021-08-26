@@ -232,6 +232,7 @@ void serverchallengeresp(pair_session_t &sess, pt::ptree &tree, const args_t &ar
   auto sign         = crypto::sign256(crypto::pkey(conf_intern.pkey), serversecret);
 
   serversecret.insert(std::end(serversecret), std::begin(sign), std::end(sign));
+  // pairingsecret = server_secret + sign_server_pk(serversecret)
 
   tree.put("root.pairingsecret", util::hex_vec(serversecret, true));
   tree.put("root.paired", 1);
@@ -669,6 +670,7 @@ void launch(bool &host_audio, resp_https_t response, req_https_t request) {
 
   if(appid >= 0) {
     auto err = proc::proc.execute(appid);
+    http::set_process_started();
     if(err) {
       tree.put("root.<xmlattr>.status_code", err);
       tree.put("root.gamesession", 0);

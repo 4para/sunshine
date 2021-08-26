@@ -36,18 +36,18 @@ namespace confighttp {
 namespace fs = std::filesystem;
 namespace pt = boost::property_tree;
 
-using https_server_t = SimpleWeb::Server<SimpleWeb::HTTPS>;
+using http_server_t = SimpleWeb::Server<SimpleWeb::HTTP>;
 
 using args_t       = SimpleWeb::CaseInsensitiveMultimap;
-using resp_https_t = std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTPS>::Response>;
-using req_https_t  = std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTPS>::Request>;
+using resp_http_t = std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Response>;
+using req_http_t  = std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTP>::Request>;
 
 enum class op_e {
   ADD,
   REMOVE
 };
 
-void print_req(const req_https_t &request) {
+void print_req(const req_http_t &request) {
   BOOST_LOG(debug) << "METHOD :: "sv << request->method;
   BOOST_LOG(debug) << "DESTINATION :: "sv << request->path;
 
@@ -64,7 +64,7 @@ void print_req(const req_https_t &request) {
   BOOST_LOG(debug) << " [--] "sv;
 }
 
-void send_unauthorized(resp_https_t response, req_https_t request) {
+void send_unauthorized(resp_http_t response, req_http_t request) {
   auto address = request->remote_endpoint_address();
   BOOST_LOG(info) << "Web UI: ["sv << address << "] -- not authorized"sv;
   const SimpleWeb::CaseInsensitiveMultimap headers {
@@ -73,7 +73,7 @@ void send_unauthorized(resp_https_t response, req_https_t request) {
   response->write(SimpleWeb::StatusCode::client_error_unauthorized, headers);
 }
 
-void send_redirect(resp_https_t response, req_https_t request, const char *path) {
+void send_redirect(resp_http_t response, req_http_t request, const char *path) {
   auto address = request->remote_endpoint_address();
   BOOST_LOG(info) << "Web UI: ["sv << address << "] -- not authorized"sv;
   const SimpleWeb::CaseInsensitiveMultimap headers {
@@ -82,7 +82,7 @@ void send_redirect(resp_https_t response, req_https_t request, const char *path)
   response->write(SimpleWeb::StatusCode::redirection_temporary_redirect, headers);
 }
 
-bool authenticate(resp_https_t response, req_https_t request) {
+bool authenticate(resp_http_t response, req_http_t request) {
   auto address = request->remote_endpoint_address();
   auto ip_type = net::from_address(address);
 
@@ -127,7 +127,7 @@ bool authenticate(resp_https_t response, req_https_t request) {
   return true;
 }
 
-void not_found(resp_https_t response, req_https_t request) {
+void not_found(resp_http_t response, req_http_t request) {
   pt::ptree tree;
   tree.put("root.<xmlattr>.status_code", 404);
 
@@ -140,7 +140,7 @@ void not_found(resp_https_t response, req_https_t request) {
             << data.str();
 }
 
-void getIndexPage(resp_https_t response, req_https_t request) {
+void getIndexPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -150,7 +150,7 @@ void getIndexPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getPinPage(resp_https_t response, req_https_t request) {
+void getPinPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -160,7 +160,7 @@ void getPinPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getAppsPage(resp_https_t response, req_https_t request) {
+void getAppsPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -170,7 +170,7 @@ void getAppsPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getClientsPage(resp_https_t response, req_https_t request) {
+void getClientsPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -180,7 +180,7 @@ void getClientsPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getConfigPage(resp_https_t response, req_https_t request) {
+void getConfigPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -190,7 +190,7 @@ void getConfigPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getPasswordPage(resp_https_t response, req_https_t request) {
+void getPasswordPage(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -200,7 +200,7 @@ void getPasswordPage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getWelcomePage(resp_https_t response, req_https_t request) {
+void getWelcomePage(resp_http_t response, req_http_t request) {
   print_req(request);
   if(!config::sunshine.username.empty()){
     send_redirect(response,request,"/");
@@ -211,7 +211,7 @@ void getWelcomePage(resp_https_t response, req_https_t request) {
   response->write(header + content);
 }
 
-void getApps(resp_https_t response, req_https_t request) {
+void getApps(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -220,7 +220,7 @@ void getApps(resp_https_t response, req_https_t request) {
   response->write(content);
 }
 
-void saveApp(resp_https_t response, req_https_t request) {
+void saveApp(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -290,7 +290,7 @@ void saveApp(resp_https_t response, req_https_t request) {
   proc::refresh(config::stream.file_apps);
 }
 
-void deleteApp(resp_https_t response, req_https_t request) {
+void deleteApp(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -338,7 +338,7 @@ void deleteApp(resp_https_t response, req_https_t request) {
   proc::refresh(config::stream.file_apps);
 }
 
-void getConfig(resp_https_t response, req_https_t request) {
+void getConfig(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -361,7 +361,7 @@ void getConfig(resp_https_t response, req_https_t request) {
   }
 }
 
-void saveConfig(resp_https_t response, req_https_t request) {
+void saveConfig(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -396,7 +396,7 @@ void saveConfig(resp_https_t response, req_https_t request) {
   }
 }
 
-void savePassword(resp_https_t response, req_https_t request) {
+void savePassword(resp_http_t response, req_http_t request) {
   if(!config::sunshine.username.empty() && !authenticate(response, request)) return;
 
   print_req(request);
@@ -451,7 +451,7 @@ void savePassword(resp_https_t response, req_https_t request) {
   }
 }
 
-void savePin(resp_https_t response, req_https_t request) {
+void savePin(resp_http_t response, req_http_t request) {
   if(!authenticate(response, request)) return;
 
   print_req(request);
@@ -481,15 +481,45 @@ void savePin(resp_https_t response, req_https_t request) {
   }
 }
 
+void get_server_status(resp_http_t response, req_http_t request) {
+  pt::ptree outputTree;
+
+  auto g = util::fail_guard([&]() {
+    std::ostringstream data;
+    pt::write_json(data, outputTree);
+    response->write(data.str());
+  });
+
+  auto server_status = http::get_server_status();
+  int idle_duration_sec = std::chrono::duration<double>(
+      std::chrono::steady_clock::now() - server_status.session_last_active_ts).count();
+  pt::ptree sessionTree;
+  sessionTree.put<int>("session_num", server_status.session_num);
+  sessionTree.put<int>("idle_duration_sec", idle_duration_sec);
+  outputTree.push_back(std::make_pair("session", sessionTree));
+  outputTree.put<bool>("process_started", server_status.process_started);
+  outputTree.put("gamepad_device_path", server_status.gamepad_device_path);
+
+  std::ostringstream data;
+  pt::write_json(data, outputTree);
+
+  BOOST_LOG(debug) << "Server status: "sv << data.str();
+
+  response->write(data.str());
+}
+
+void stop_server(resp_http_t, req_http_t) {
+  auto shutdown_event = mail::man->event<bool>(mail::shutdown);
+  shutdown_event->raise(true);
+}
+
 void start() {
   auto shutdown_event = mail::man->event<bool>(mail::shutdown);
 
-  auto port_https = map_port(PORT_HTTPS);
+  auto port_http = map_port(PORT_HTTP);
 
-  auto ctx = std::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tls);
-  ctx->use_certificate_chain_file(config::nvhttp.cert);
-  ctx->use_private_key_file(config::nvhttp.pkey, boost::asio::ssl::context::pem);
-  https_server_t server { ctx, 0 };
+  http_server_t server;
+
   server.default_resource                           = not_found;
   server.resource["^/$"]["GET"]                     = getIndexPage;
   server.resource["^/pin$"]["GET"]                  = getPinPage;
@@ -505,16 +535,18 @@ void start() {
   server.resource["^/api/config$"]["POST"]          = saveConfig;
   server.resource["^/api/password$"]["POST"]        = savePassword;
   server.resource["^/api/apps/([0-9]+)$"]["DELETE"] = deleteApp;
+  server.resource["^/status$"]["GET"] = get_server_status;
+  server.resource["^/stop$"]["PUT"] = stop_server;
   server.config.reuse_address                       = true;
   server.config.address                             = "0.0.0.0"s;
-  server.config.port                                = port_https;
+  server.config.port                                = port_http;
 
   try {
     server.bind();
-    BOOST_LOG(info) << "Configuration UI available at [https://localhost:"sv << port_https << "]";
+    BOOST_LOG(info) << "Configuration UI available at [http://localhost:"sv << port_http << "]";
   }
   catch(boost::system::system_error &err) {
-    BOOST_LOG(fatal) << "Couldn't bind http server to ports ["sv << port_https << "]: "sv << err.what();
+    BOOST_LOG(fatal) << "Couldn't bind http server to ports ["sv << port_http << "]: "sv << err.what();
 
     shutdown_event->raise(true);
     return;
@@ -529,7 +561,7 @@ void start() {
         return;
       }
 
-      BOOST_LOG(fatal) << "Couldn't start Configuration HTTPS server to port ["sv << port_https << "]: "sv << err.what();
+      BOOST_LOG(fatal) << "Couldn't start Configuration HTTPS server to port ["sv << port_http << "]: "sv << err.what();
       shutdown_event->raise(true);
       return;
     }

@@ -15,6 +15,7 @@
 #include "sunshine/config.h"
 
 #include "sunshine/platform/common.h"
+#include "sunshine/httpcommon.h"
 
 // Support older versions
 #ifndef REL_HWHEEL_HI_RES
@@ -664,6 +665,8 @@ public:
         (std::int16_t)POLLIN,
         (std::int16_t)0,
       });
+
+    http::set_gamepad_device_path(dev_node);
 
     std::filesystem::create_symlink(dev_node, gamepad_path);
     return 0;

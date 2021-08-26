@@ -16,4 +16,23 @@ extern std::string unique_id;
 extern net::net_e origin_pin_allowed;
 extern net::net_e origin_web_ui_allowed;
 
+struct server_status_t {
+  std::string gamepad_device_path = "";
+  int session_num = 0;
+  std::chrono::steady_clock::time_point session_last_active_ts;
+  bool process_started = false;
+};
+
+void set_gamepad_device_path(const std::string& device_path);
+
+void set_process_started();
+
+void set_session_started();
+
+void set_session_active();
+
+void set_session_stopped();
+
+server_status_t get_server_status();
+
 } // namespace http

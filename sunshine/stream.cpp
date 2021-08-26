@@ -24,6 +24,7 @@ extern "C" {
 #include "sync.h"
 #include "thread_safe.h"
 #include "utility.h"
+#include "httpcommon.h"
 
 #define IDX_START_A 0
 #define IDX_START_B 1
@@ -404,6 +405,7 @@ void control_server_t::iterate(std::chrono::milliseconds timeout) {
     }
 
     session->pingTimeout = std::chrono::steady_clock::now() + config::stream.ping_timeout;
+    http::set_session_active();
 
     switch(event.type) {
     case ENET_EVENT_TYPE_RECEIVE: {
@@ -1303,9 +1305,12 @@ void stop(session_t &session) {
   while_starting_do_nothing(session.state);
   auto expected         = state_e::RUNNING;
   auto already_stopping = !session.state.compare_exchange_strong(expected, state_e::STOPPING);
+
   if(already_stopping) {
     return;
   }
+
+  http::set_session_stopped();
 
   session.shutdown_event->raise(true);
 }
@@ -1393,6 +1398,8 @@ int start(session_t &session, const std::string &addr_string) {
   session.videoThread = std::thread { videoThread, &session };
 
   session.state.store(state_e::RUNNING, std::memory_order_relaxed);
+
+  http::set_session_started();
 
   return 0;
 }

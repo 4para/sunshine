@@ -3,6 +3,7 @@
 #include "process.h"
 
 #include <filesystem>
+#include <chrono>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -24,6 +25,7 @@
 #include "rtsp.h"
 #include "utility.h"
 #include "uuid.h"
+#include "sync.h"
 
 namespace http {
 using namespace std::literals;
@@ -36,6 +38,8 @@ bool user_creds_exist(const std::string &file);
 std::string unique_id;
 net::net_e origin_pin_allowed;
 net::net_e origin_web_ui_allowed;
+
+static util::sync_t<server_status_t> server_status;
 
 int init() {
   bool clean_slate      = config::sunshine.flags[config::flag::FRESH_STATE];
@@ -59,6 +63,10 @@ int init() {
   } else {
     BOOST_LOG(info) << "Open the Web UI to set your new username and password and getting started";
   }
+
+  auto lg = server_status.lock();
+  server_status->session_last_active_ts = std::chrono::steady_clock::now();
+
   return 0;
 }
 
@@ -179,4 +187,37 @@ int create_creds(const std::string &pkey, const std::string &cert) {
 
   return 0;
 }
+
+void set_gamepad_device_path(const std::string& device_path) {
+  auto lg = server_status.lock();
+  server_status->gamepad_device_path = device_path;
+}
+
+void set_process_started() {
+  auto lg = server_status.lock();
+  server_status->process_started = true;
+}
+
+void set_session_started() {
+  auto lg = server_status.lock();
+  server_status->session_num += 1;
+  server_status->session_last_active_ts = std::chrono::steady_clock::now();
+}
+
+void set_session_active() {
+  auto lg = server_status.lock();
+  server_status->session_last_active_ts = std::chrono::steady_clock::now();
+}
+
+void set_session_stopped() {
+  auto lg = server_status.lock();
+  server_status->session_num -= 1;
+}
+
+server_status_t get_server_status() {
+  auto lg = server_status.lock();
+  auto ret = *server_status;
+  return ret;
+}
+
 } // namespace http

@@ -349,22 +349,22 @@ static auto broadcast = safe::make_shared<broadcast_ctx_t>(start_broadcast, end_
 session_t *control_server_t::get_session(const net::peer_t peer) {
   TUPLE_2D(port, addr_string, platf::from_sockaddr_ex((sockaddr *)&peer->address.address));
 
-  BOOST_LOG(debug) << "port: " << port;
-  BOOST_LOG(debug) << "addr_string: " << addr_string;
+  // BOOST_LOG(debug) << "port: " << port;
+  // BOOST_LOG(debug) << "addr_string: " << addr_string;
 
   auto lg = _map_addr_session.lock();
   TUPLE_2D(begin, end, _map_addr_session->equal_range(addr_string));
 
-  int count = 0;
-  for(auto pos = begin; pos != end; ++pos) {
-    ++count;
-  }
-  BOOST_LOG(debug) << "equal range: " << count;
+  // int count = 0;
+  // for(auto pos = begin; pos != end; ++pos) {
+  //   ++count;
+  // }
+  // BOOST_LOG(debug) << "equal range: " << count;
 
   auto it = std::end(_map_addr_session.raw);
   for(auto pos = begin; pos != end; ++pos) {
     TUPLE_2D_REF(session_port, session_p, pos->second);
-    BOOST_LOG(debug) << " session port: " << session_port;
+    // BOOST_LOG(debug) << " session port: " << session_port;
 
     if(port == session_port) {
       return session_p;
@@ -1382,7 +1382,7 @@ int start(session_t &session, const std::string &addr_string) {
     return -1;
   }
 
-  BOOST_LOG(debug) << "?????????????? start session remote addr: " << addr_string;
+  // BOOST_LOG(debug) << "?????????????? start session remote addr: " << addr_string;
 
   session.broadcast_ref->control_server.emplace_addr_to_session(addr_string, session);
 

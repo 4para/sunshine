@@ -747,6 +747,11 @@ void apply_config(std::unordered_map<std::string, std::string> &&vars) {
     config::sunshine.flags[config::flag::UPNP].flip();
   }
 
+  int_f(vars, "remote_rtsp_port", remote_port.remote_rtsp);
+  int_f(vars, "remote_stream_video_port", remote_port.remote_stream_video);
+  int_f(vars, "remote_stream_audio_port", remote_port.remote_stream_audio);
+  int_f(vars, "remote_stream_control_port", remote_port.remote_stream_control);
+
   std::string log_level_string;
   string_f(vars, "min_log_level", log_level_string);
 
@@ -793,11 +798,6 @@ void apply_config(std::unordered_map<std::string, std::string> &&vars) {
       std::cout << "Warning: Unrecognized configurable option ["sv << var << ']' << std::endl;
     }
   }
-
-  int_f(vars, "remote_rtsp_port", remote_port.remote_rtsp);
-  int_f(vars, "remote_stream_video_port", remote_port.remote_stream_video);
-  int_f(vars, "remote_stream_audio_port", remote_port.remote_stream_audio);
-  int_f(vars, "remote_stream_control_port", remote_port.remote_stream_control);
 }
 
 int parse(int argc, char *argv[]) {

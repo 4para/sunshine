@@ -174,6 +174,8 @@ video_t video {
 
 audio_t audio {};
 
+remote_port_t remote_port { -1, -1, -1, -1 };
+
 stream_t stream {
   10s, // ping_timeout
 
@@ -791,6 +793,11 @@ void apply_config(std::unordered_map<std::string, std::string> &&vars) {
       std::cout << "Warning: Unrecognized configurable option ["sv << var << ']' << std::endl;
     }
   }
+
+  int_f(vars, "remote_rtsp_port", remote_port.remote_rtsp);
+  int_f(vars, "remote_stream_video_port", remote_port.remote_stream_video);
+  int_f(vars, "remote_stream_audio_port", remote_port.remote_stream_audio);
+  int_f(vars, "remote_stream_control_port", remote_port.remote_stream_control);
 }
 
 int parse(int argc, char *argv[]) {
@@ -856,4 +863,13 @@ int parse(int argc, char *argv[]) {
 
   return 0;
 }
+
+uint16_t map_remote_port(int configured, int mapped_port) {
+  if (configured != -1) {
+    return configured;
+  } else {
+    return mapped_port;
+  }
+}
+
 } // namespace config

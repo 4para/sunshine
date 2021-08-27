@@ -85,6 +85,13 @@ struct input_t {
   bool enable_keyboard_passthrough = true;
 };
 
+struct remote_port_t {
+  int remote_rtsp;
+  int remote_stream_video;
+  int remote_stream_audio;
+  int remote_stream_control;
+};
+
 namespace flag {
 enum flag_e : std::size_t {
   PIN_STDIN = 0,              // Read PIN from stdin instead of http
@@ -122,8 +129,12 @@ extern stream_t stream;
 extern nvhttp_t nvhttp;
 extern input_t input;
 extern sunshine_t sunshine;
+extern remote_port_t remote_port;
 
 int parse(int argc, char *argv[]);
 std::unordered_map<std::string, std::string> parse_config(const std::string_view &file_content);
+
+uint16_t map_remote_port(int configured, int mapped_port);
+
 } // namespace config
 #endif

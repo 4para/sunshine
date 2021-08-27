@@ -683,7 +683,8 @@ void launch(bool &host_audio, resp_https_t response, req_https_t request) {
   stream::launch_session_raise(make_launch_session(host_audio, args));
 
   tree.put("root.<xmlattr>.status_code", 200);
-  tree.put("root.sessionUrl0", "rtsp://"s + request->local_endpoint_address() + ':' + std::to_string(map_port(stream::RTSP_SETUP_PORT)));
+  uint16_t rtsp_setup_port = config::map_remote_port(config::remote_port.remote_rtsp, map_port(stream::RTSP_SETUP_PORT));
+  tree.put("root.sessionUrl0", "rtsp://"s + request->local_endpoint_address() + ':' + std::to_string(rtsp_setup_port));
   tree.put("root.gamesession", 1);
 }
 
@@ -730,7 +731,8 @@ void resume(bool &host_audio, resp_https_t response, req_https_t request) {
   stream::launch_session_raise(make_launch_session(host_audio, args));
 
   tree.put("root.<xmlattr>.status_code", 200);
-  tree.put("root.sessionUrl0", "rtsp://"s + request->local_endpoint_address() + ':' + std::to_string(map_port(stream::RTSP_SETUP_PORT)));
+  uint16_t rtsp_setup_port = config::map_remote_port(config::remote_port.remote_rtsp, map_port(stream::RTSP_SETUP_PORT));
+  tree.put("root.sessionUrl0", "rtsp://"s + request->local_endpoint_address() + ':' + std::to_string(rtsp_setup_port));
   tree.put("root.resume", 1);
 }
 

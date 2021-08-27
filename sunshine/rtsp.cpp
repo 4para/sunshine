@@ -515,13 +515,13 @@ void cmd_setup(rtsp_server_t *server, tcp::socket &sock, msg_t &&req) {
 
   std::uint16_t port;
   if(type == "audio"sv) {
-    port = map_port(stream::AUDIO_STREAM_PORT);
+    port = config::map_remote_port(config::remote_port.remote_stream_audio, map_port(stream::AUDIO_STREAM_PORT));
   }
   else if(type == "video"sv) {
-    port = map_port(stream::VIDEO_STREAM_PORT);
+    port = config::map_remote_port(config::remote_port.remote_stream_video, map_port(stream::VIDEO_STREAM_PORT));
   }
   else if(type == "control"sv) {
-    port = map_port(stream::CONTROL_PORT);
+    port = config::map_remote_port(config::remote_port.remote_stream_control, map_port(stream::CONTROL_PORT));
   }
   else {
     cmd_not_found(sock, std::move(req));

@@ -138,6 +138,8 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  display_cursor = config::input.display_cursor_by_default;
+
   if(config::sunshine.min_log_level >= 1) {
     av_log_set_level(AV_LOG_QUIET);
   }

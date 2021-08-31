@@ -83,6 +83,7 @@ struct input_t {
   std::string gamepad_device_name;
   bool enable_mouse_passthrough = true;
   bool enable_keyboard_passthrough = true;
+  bool display_cursor_by_default = true;
 };
 
 struct remote_port_t {

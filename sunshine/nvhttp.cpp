@@ -581,8 +581,9 @@ void serverinfo(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> res
   response->close_connection_after_response = true;
 }
 
-void applist(resp_https_t response, req_https_t request) {
-  print_req<SimpleWeb::HTTPS>(request);
+template<class T>
+void applist(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
+  print_req<T>(request);
 
   pt::ptree tree;
 
@@ -626,8 +627,9 @@ void applist(resp_https_t response, req_https_t request) {
   }
 }
 
-void launch(bool &host_audio, resp_https_t response, req_https_t request) {
-  print_req<SimpleWeb::HTTPS>(request);
+template<class T>
+void launch(bool &host_audio, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
+  print_req<T>(request);
 
   pt::ptree tree;
   auto g = util::fail_guard([&]() {
@@ -688,8 +690,9 @@ void launch(bool &host_audio, resp_https_t response, req_https_t request) {
   tree.put("root.gamesession", 1);
 }
 
-void resume(bool &host_audio, resp_https_t response, req_https_t request) {
-  print_req<SimpleWeb::HTTPS>(request);
+template<class T>
+void resume(bool &host_audio, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
+  print_req<T>(request);
 
   pt::ptree tree;
   auto g = util::fail_guard([&]() {
@@ -703,6 +706,8 @@ void resume(bool &host_audio, resp_https_t response, req_https_t request) {
   // It is possible that due a race condition that this if-statement gives a false negative,
   // that is automatically resolved in rtsp_server_t
   if(stream::session_count() == config::stream.channels) {
+    BOOST_LOG(debug) << "current session_count: " << stream::session_count()
+        << ", configured channel number: "  << config::stream.channels;
     tree.put("root.resume", 0);
     tree.put("root.<xmlattr>.status_code", 503);
 
@@ -711,6 +716,7 @@ void resume(bool &host_audio, resp_https_t response, req_https_t request) {
 
   auto current_appid = proc::proc.running();
   if(current_appid == -1) {
+    BOOST_LOG(debug) << "No running process to resume.";
     tree.put("root.resume", 0);
     tree.put("root.<xmlattr>.status_code", 503);
 
@@ -736,8 +742,9 @@ void resume(bool &host_audio, resp_https_t response, req_https_t request) {
   tree.put("root.resume", 1);
 }
 
-void cancel(resp_https_t response, req_https_t request) {
-  print_req<SimpleWeb::HTTPS>(request);
+template<class T>
+void cancel(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
+  print_req<T>(request);
 
   pt::ptree tree;
   auto g = util::fail_guard([&]() {
@@ -765,8 +772,9 @@ void cancel(resp_https_t response, req_https_t request) {
   }
 }
 
-void appasset(resp_https_t response, req_https_t request) {
-  print_req<SimpleWeb::HTTPS>(request);
+template<class T>
+void appasset(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> response, std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
+  print_req<T>(request);
 
   std::ifstream in(SUNSHINE_ASSETS_DIR "/box.png");
   response->write(SimpleWeb::StatusCode::success_ok, in);
@@ -873,12 +881,12 @@ void start() {
   https_server.default_resource                   = not_found<SimpleWeb::HTTPS>;
   https_server.resource["^/serverinfo$"]["GET"]   = serverinfo<SimpleWeb::HTTPS>;
   https_server.resource["^/pair$"]["GET"]         = [&add_cert](auto resp, auto req) { pair<SimpleWeb::HTTPS>(add_cert, resp, req); };
-  https_server.resource["^/applist$"]["GET"]      = applist;
-  https_server.resource["^/appasset$"]["GET"]     = appasset;
-  https_server.resource["^/launch$"]["GET"]       = [&host_audio](auto resp, auto req) { launch(host_audio, resp, req); };
+  https_server.resource["^/applist$"]["GET"]      = applist<SimpleWeb::HTTPS>;
+  https_server.resource["^/appasset$"]["GET"]     = appasset<SimpleWeb::HTTPS>;
+  https_server.resource["^/launch$"]["GET"]       = [&host_audio](auto resp, auto req) { launch<SimpleWeb::HTTPS>(host_audio, resp, req); };
   https_server.resource["^/pin/([0-9]+)$"]["GET"] = pin<SimpleWeb::HTTPS>;
-  https_server.resource["^/resume$"]["GET"]       = [&host_audio](auto resp, auto req) { resume(host_audio, resp, req); };
-  https_server.resource["^/cancel$"]["GET"]       = cancel;
+  https_server.resource["^/resume$"]["GET"]       = [&host_audio](auto resp, auto req) { resume<SimpleWeb::HTTPS>(host_audio, resp, req); };
+  https_server.resource["^/cancel$"]["GET"]       = cancel<SimpleWeb::HTTPS>;
 
   https_server.config.reuse_address = true;
   https_server.config.address       = "0.0.0.0"s;
@@ -888,6 +896,11 @@ void start() {
   http_server.resource["^/serverinfo$"]["GET"]   = serverinfo<SimpleWeb::HTTP>;
   http_server.resource["^/pair$"]["GET"]         = [&add_cert](auto resp, auto req) { pair<SimpleWeb::HTTP>(add_cert, resp, req); };
   http_server.resource["^/pin/([0-9]+)$"]["GET"] = pin<SimpleWeb::HTTP>;
+  http_server.resource["^/applist$"]["GET"]      = applist<SimpleWeb::HTTP>;
+  http_server.resource["^/appasset$"]["GET"]     = appasset<SimpleWeb::HTTP>;
+  http_server.resource["^/launch$"]["GET"]       = [&host_audio](auto resp, auto req) { launch<SimpleWeb::HTTP>(host_audio, resp, req); };
+  http_server.resource["^/resume$"]["GET"]       = [&host_audio](auto resp, auto req) { resume<SimpleWeb::HTTP>(host_audio, resp, req); };
+  http_server.resource["^/cancel$"]["GET"]       = cancel<SimpleWeb::HTTP>;
 
   http_server.config.reuse_address = true;
   http_server.config.address       = "0.0.0.0"s;

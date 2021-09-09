@@ -257,6 +257,14 @@ int main(int argc, char *argv[]) {
     return 3;
   }
 
+  // 直接启动一个 process
+  auto err = proc::proc.execute(0);
+  http::set_process_started();
+  if (err) {
+    BOOST_LOG(fatal) << "Launch app id 0 failed";
+    return 5;
+  }
+  
   std::unique_ptr<platf::deinit_t> mDNS;
   auto sync_mDNS = std::async(std::launch::async, [&mDNS]() {
     mDNS = platf::publish::start();

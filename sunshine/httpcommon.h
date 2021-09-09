@@ -27,6 +27,8 @@ void set_gamepad_device_path(const std::string& device_path);
 
 void set_process_started();
 
+void set_process_stopped();
+
 void set_session_started();
 
 void set_session_active();

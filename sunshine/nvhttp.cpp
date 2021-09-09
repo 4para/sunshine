@@ -716,11 +716,19 @@ void resume(bool &host_audio, std::shared_ptr<typename SimpleWeb::ServerBase<T>:
 
   auto current_appid = proc::proc.running();
   if(current_appid == -1) {
-    BOOST_LOG(debug) << "No running process to resume.";
-    tree.put("root.resume", 0);
-    tree.put("root.<xmlattr>.status_code", 503);
+    // BOOST_LOG(debug) << "No running process to resume.";
+    // tree.put("root.resume", 0);
+    // tree.put("root.<xmlattr>.status_code", 503);
 
-    return;
+    // return;
+    auto err = proc::proc.execute(0);
+    http::set_process_started();
+    if(err) {
+      tree.put("root.<xmlattr>.status_code", err);
+      tree.put("root.gamesession", 0);
+
+      return;
+    }
   }
 
   auto args = request->parse_query_string();
@@ -769,6 +777,7 @@ void cancel(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Response> respons
 
   if(proc::proc.running() != -1) {
     proc::proc.terminate();
+    http::set_process_stopped();
   }
 }
 

@@ -198,6 +198,11 @@ void set_process_started() {
   server_status->process_started = true;
 }
 
+void set_process_stopped() {
+  auto lg = server_status.lock();
+  server_status->process_started = false;
+}
+
 void set_session_started() {
   auto lg = server_status.lock();
   server_status->session_num += 1;

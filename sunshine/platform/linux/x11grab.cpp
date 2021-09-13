@@ -704,7 +704,10 @@ std::shared_ptr<display_t> x11_display(platf::mem_type_e hwdevice_type, const st
   return x11_disp;
 }
 
+// 通过调用 X11 和 X11RandR 库获得显示器(screen)的名字列表
+// x11::OpenDisplay(nullptr) 不指定 X11 display，实际访问的是环境变量 DISPLAY 对应的 display
 std::vector<std::string> x11_display_names() {
+  // 加载 x11, x11::rr, x11::fixes, xcb, xcb-shm 中所需要的方法
   if(load_x11() || load_xcb()) {
     BOOST_LOG(error) << "Couldn't init x11 libraries"sv;
 
@@ -775,10 +778,13 @@ std::optional<cursor_t> cursor_t::make() {
 }
 
 void cursor_t::capture(egl::cursor_t &img) {
+  // ctx 实际上对应的是 xdisplay_t 类型
   auto display = (xdisplay_t::pointer)ctx.get();
 
   xcursor_t xcursor = fix::GetCursorImage(display);
 
+  // 关于 cursor serial: https://stackoverflow.com/questions/22891351/structure-of-xfixescursorimage
+  // (可能)可以理解为cursor样式
   if(img.serial != xcursor->cursor_serial) {
     auto buf_size = xcursor->width * xcursor->height * sizeof(int);
 
